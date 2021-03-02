@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using Newtonsoft.Json.Linq;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 
@@ -91,22 +92,23 @@ namespace WebApplication1.queu
         }
 
 
-        public string GetQueues()
+        public JObject GetQueues()
         {
-            string QueueInfo = "{ queues: [ ";
+            JArray QueuesForJson = new JArray();
 
             foreach ( string ChannelI in channels.Keys)
             {
                 IModel ch;
                 channels.TryGetValue(ChannelI, out ch);
                 uint nMess = ch.MessageCount(ChannelI);
+                JObject QueuForJson = new JObject();
+                QueuForJson.Add(new JProperty("name", ChannelI));
+                QueuForJson.Add(new JProperty("messages", nMess));
+                QueuesForJson.Add(QueuForJson);
 
-                QueueInfo = QueueInfo + "{ name: '" + ChannelI + "', messages: " + nMess + "},";
             }
-            QueueInfo = QueueInfo.Substring(0,QueueInfo.Length-1);
-            QueueInfo = QueueInfo + "] }";
 
-            return QueueInfo;
+            return new JObject(new JProperty("queues", QueuesForJson));
         }
 
 
